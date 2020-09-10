@@ -9,15 +9,15 @@ const Spotify = {
             return userAccessToken
         }
         //Looking for access tokens and expires date
-        let accessTokenMatch = window.location.href.match(/access_token=([^&]*)/)
-        let expireDateMatch = window.location.href.match(/expires_in=([^&]*)/)
+        const accessTokenMatch = window.location.href.match(/access_token=([^&]*)/)
+        const expireDateMatch = window.location.href.match(/expires_in=([^&]*)/)
 
         if(accessTokenMatch && expireDateMatch) {
-            userAccessToken = accessTokenMatch
+            userAccessToken = accessTokenMatch[1]
             let expiresIn = Number(expireDateMatch[1])
             //Clearing new parameter in URL when token expires 
-            window.setTimeout(() => userAccessToken = '', expiresIn * 1000)
-            window.history.pushState('Access Token', null, '/')
+            window.setTimeout(() => userAccessToken = '', expiresIn * 1000);
+            window.history.pushState('Access Token', null, '/');
             return userAccessToken
         } else {
             const accessUrl = `https://accounts.spotify.com/authorize?client_id=${appClientId}&response_type=token&scope=playlist-modify-public&redirect_uri=${redirectURI}`
@@ -26,11 +26,12 @@ const Spotify = {
     },
     search(term) {
         const accesToken = Spotify.getAccessToken();
-        return fetch(`https://api.spotify.com/v1/search?type=track&q=${term}`, {headers: {
+        return fetch(`https://api.spotify.com/v1/search?type=track&q=${term}`, 
+        { headers: {
             Authorization: `Bearer ${accesToken}`
         }})
         .then(response => {
-            response.json()
+            return response.json()
         })
         .then(jsonResponse => {
             if(!jsonResponse.tracks) {
@@ -39,7 +40,7 @@ const Spotify = {
             return jsonResponse.tracks.items.map(track => ({
                 id: track.id,
                 name: track.name,
-                artist: track.artist[0].name,
+                artist: track.artists[0].name,
                 album: track.album.name,
                 uri: track.uri
             }))
@@ -58,19 +59,21 @@ const Spotify = {
         ).then(response => response.json()
         ).then(jsonResponse => {
             userId = jsonResponse.id
-            return fetch(`/v1/users/${userId}/playlists`, 
+            return fetch(`https://api.spotify.com/v1/users/${userId}/playlists`, 
             {
                 headers: headers,
                 method: 'POST',
-                body: JSON.stringify({name: playListName})
-                .then(response => response.json())
-                .then(jsonResponse => {
-                    const playListId = jsonResponse.id
-                    return fetch(`/v1/users/${userId}/playlists/${playListId}/tracks`,
-                    {
-                        headers: headers,
-                        method: 'POST',
-                        body: JSON.stringify({uris: trackUriArray})
+                body: JSON.stringify({ name: playListName})
+            })
+            .then(response => response.json())
+            .then(jsonResponse => {
+                const playlistId = jsonResponse.id
+                return fetch(`https://api.spotify.com/v1/users/${userId}/playlists/${playlistId}/tracks`,
+                {
+                    headers: headers,
+                    method: 'POST',
+                    body: JSON.stringify({
+                        uris: trackUriArray
                     })
                 })
             })
