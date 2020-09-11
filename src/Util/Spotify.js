@@ -1,5 +1,5 @@
 const appClientId = 'ed51599a8a094243aa0be1af4a6a170f'
-const redirectURI = "http://localhost:3000/"
+const redirectURI = "http://brawny-soap.surge.sh"
 
 let userAccessToken;
 
